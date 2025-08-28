@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Weekly Schedule</title>
+<style>
+body { font-family: Arial; text-align: center; background: #f0f2f5; margin:0; padding-top:120px; }
+#header { position: fixed; top:0; width:100%; background:#007ACC; color:white; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+#header h1 { margin:0; font-size:2em; flex:1; text-align:center; }
+#companyLogo { max-height:60px; object-fit:contain; }
+table { width:90%; border-collapse: collapse; margin:20px auto; background:white; }
+th, td { border:1px solid #ccc; padding:10px; text-align:center; }
+.today { background: #fffa91; }
+img.profilePic { max-height:40px; border-radius:50%; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <img src="logo.png" alt="Company Logo" id="companyLogo">
+  <h1>Weekly Schedule</h1>
+</div>
+
+<table id="scheduleTable">
+  <thead>
+    <tr>
+      <th>Profile</th>
+      <th>Name</th>
+      <th>Monday</th>
+      <th>Tuesday</th>
+      <th>Wednesday</th>
+      <th>Thursday</th>
+      <th>Friday</th>
+      <th>Saturday</th>
+      <th>Sunday</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+async function loadSchedule() {
+  try {
+    const res = await fetch('/api/schedule');
+    const rows = await res.json();
+    const tbody = document.querySelector('#scheduleTable tbody');
+    tbody.innerHTML = '';
+
+    const todayIndex = new Date().getDay() - 1; // Monday=0
+
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+
+      // Profile
+      const profileCell = document.createElement('td');
+      const img = document.createElement('img');
+      img.classList.add('profilePic');
+
+      let filename = row.Profile ? row.Profile.trim() : '';
+      img.src = filename ? `/profiles/${filename}` : '/profiles/placeholder.jpg';
+      img.onerror = () => { img.src = '/profiles/placeholder.jpg'; };
+
+      profileCell.appendChild(img);
+      tr.appendChild(profileCell);
+
+      // Name
+      const nameCell = document.createElement('td');
+      nameCell.innerText = row.Name;
+      tr.appendChild(nameCell);
+
+      // Days
+      ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].forEach((day,i)=>{
+        const td = document.createElement('td');
+        td.innerText = row[day] || '';
+        if(i === todayIndex) td.classList.add('today');
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+loadSchedule();
+</script>
+</body>
+</html>
